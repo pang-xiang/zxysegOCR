@@ -20,6 +20,8 @@ import torch._utils
 import torch.nn.functional as F
 
 from .bn_helper import BatchNorm2d, BatchNorm2d_class, relu_inplace
+from .dcn import DCN
+import pdb
 
 ALIGN_CORNERS = True
 BN_MOMENTUM = 0.1
@@ -430,6 +432,36 @@ class HighResolutionNet(nn.Module):
                                bias=False)
         self.bn2 = BatchNorm2d(64, momentum=BN_MOMENTUM)
         self.relu = nn.ReLU(inplace=relu_inplace)
+        
+        self.DCN0 = nn.Sequential(DCN(in_channels=48, out_channels=48,   kernel_size=3, stride=1, padding=1),
+                                  nn.BatchNorm2d(48, momentum=BN_MOMENTUM),
+                                  nn.ReLU(inplace=True)) 
+            
+        self.DCN1 = nn.Sequential(DCN(in_channels=96, out_channels=96,   kernel_size=3, stride=1, padding=1),
+                                  nn.BatchNorm2d(96, momentum=BN_MOMENTUM),
+                                  nn.ReLU(inplace=True))
+
+        self.DCN2 = nn.Sequential(DCN(in_channels=192, out_channels=192,   kernel_size=3, stride=1, padding=1),
+                                  nn.BatchNorm2d(192, momentum=BN_MOMENTUM),
+                                  nn.ReLU(inplace=True))
+
+        self.DCN3 = nn.Sequential(DCN(in_channels=384, out_channels=384,   kernel_size=3, stride=1, padding=1),
+                                  nn.BatchNorm2d(384, momentum=BN_MOMENTUM),
+                                  nn.ReLU(inplace=True))
+                                               
+
+        self.Deconv1 = nn.Sequential(nn.ConvTranspose2d(in_channels=96,  out_channels=96,  kernel_size=3, stride=2, padding=1, output_padding=1),
+                                    nn.BatchNorm2d(96, momentum=BN_MOMENTUM),
+                                    nn.ReLU(inplace=True))
+        
+        self.Deconv2 = nn.Sequential(nn.ConvTranspose2d(in_channels=192, out_channels=192, kernel_size=3, stride=4, padding=1, output_padding=3),
+                                  nn.BatchNorm2d(192, momentum=BN_MOMENTUM),
+                                  nn.ReLU(inplace=True))
+                                              
+        self.Deconv3 = nn.Sequential(nn.ConvTranspose2d(in_channels=384, out_channels=384, kernel_size=3, stride=8, padding=1, output_padding=7), 
+                                  nn.BatchNorm2d(384, momentum=BN_MOMENTUM),
+                                  nn.ReLU(inplace=True))   
+                
 
         self.stage1_cfg = extra['STAGE1']
         num_channels = self.stage1_cfg['NUM_CHANNELS'][0]
@@ -621,14 +653,24 @@ class HighResolutionNet(nn.Module):
 
         # Upsampling
         x0_h, x0_w = x[0].size(2), x[0].size(3)
-        x1 = F.interpolate(x[1], size=(x0_h, x0_w),
-                        mode='bilinear', align_corners=ALIGN_CORNERS)
-        x2 = F.interpolate(x[2], size=(x0_h, x0_w),
-                        mode='bilinear', align_corners=ALIGN_CORNERS)
-        x3 = F.interpolate(x[3], size=(x0_h, x0_w),
-                        mode='bilinear', align_corners=ALIGN_CORNERS)
 
-        feats = torch.cat([x[0], x1, x2, x3], 1)
+        x0 = self.DCN0(x[0]) #torch.Size([1, 48, 128, 256])
+        x1 = self.DCN1(x[1]) #orch.Size([1, 96, 64, 128])
+        x2 = self.DCN2(x[2])  #torch.Size([1, 192, 32, 64])
+        x3 = self.DCN3(x[3])  #torch.Size([1, 384, 16, 32])
+                
+        # x1 = F.interpolate(x[1], size=(x0_h, x0_w),
+        #                 mode='bilinear', align_corners=ALIGN_CORNERS)
+        # x2 = F.interpolate(x[2], size=(x0_h, x0_w),
+        #                 mode='bilinear', align_corners=ALIGN_CORNERS)
+        # x3 = F.interpolate(x[3], size=(x0_h, x0_w),
+        #                 mode='bilinear', align_corners=ALIGN_CORNERS)
+
+        x1 = self.Deconv1(x1) #torch.Size([1, 96, 128, 256])
+        x2 = self.Deconv2(x2) #torch.Size([1, 192, 126, 254])
+        x3 = self.Deconv3(x3) #torch.Size([1, 384, 122, 250])
+
+        feats = torch.cat([x0, x1, x2, x3], 1)
 
         out_aux_seg = []
 
