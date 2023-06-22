@@ -100,10 +100,10 @@ class Cityscapes(BaseDataset):
     def __getitem__(self, index):
         item = self.files[index]
         name = item["name"]
-        # image = cv2.imread(os.path.join(self.root,'cityscapes',item["img"]),
-        #                    cv2.IMREAD_COLOR)
-        image = cv2.imread(os.path.join(self.root, item["img"]),
+        image = cv2.imread(os.path.join(self.root,'cityscapes',item["img"]),
                            cv2.IMREAD_COLOR)
+        # image = cv2.imread(os.path.join(self.root, item["img"]),
+        #                    cv2.IMREAD_COLOR)
         size = image.shape
 
         if 'test' in self.list_path:
@@ -112,10 +112,10 @@ class Cityscapes(BaseDataset):
 
             return image.copy(), np.array(size), name
 
-        # label = cv2.imread(os.path.join(self.root,'cityscapes',item["label"]),
-        #                    cv2.IMREAD_GRAYSCALE)
-        label = cv2.imread(os.path.join(self.root, item["label"]),
+        label = cv2.imread(os.path.join(self.root,'cityscapes',item["label"]),
                            cv2.IMREAD_GRAYSCALE)
+        # label = cv2.imread(os.path.join(self.root, item["label"]),
+        #                    cv2.IMREAD_GRAYSCALE)
         label = self.convert_label(label)
 
         image, label = self.gen_sample(image, label, 
@@ -127,8 +127,8 @@ class Cityscapes(BaseDataset):
         batch, _, ori_height, ori_width = image.size()
         assert batch == 1, "only supporting batchsize 1."
         image = image.numpy()[0].transpose((1,2,0)).copy()
-        stride_h = np.int(self.crop_size[0] * 1.0)
-        stride_w = np.int(self.crop_size[1] * 1.0)
+        stride_h = np.int_(self.crop_size[0] * 1.0)
+        stride_w = np.int_(self.crop_size[1] * 1.0)
         final_pred = torch.zeros([1, self.num_classes,
                                     ori_height,ori_width]).cuda()
         for scale in scales:
@@ -145,9 +145,9 @@ class Cityscapes(BaseDataset):
                 preds = preds[:, :, 0:height, 0:width]
             else:
                 new_h, new_w = new_img.shape[:-1]
-                rows = np.int(np.ceil(1.0 * (new_h - 
+                rows = np.int_(np.ceil(1.0 * (new_h - 
                                 self.crop_size[0]) / stride_h)) + 1
-                cols = np.int(np.ceil(1.0 * (new_w - 
+                cols = np.int_(np.ceil(1.0 * (new_w - 
                                 self.crop_size[1]) / stride_w)) + 1
                 preds = torch.zeros([1, self.num_classes,
                                            new_h,new_w]).cuda()

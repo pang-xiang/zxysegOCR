@@ -41,7 +41,7 @@ def parse_args():
                         required=True,
                         type=str)
     parser.add_argument('--seed', type=int, default=304)
-    parser.add_argument("--local_rank", type=int, default=-1)       
+    parser.add_argument("--local-rank", type=int, default=-1)       
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
@@ -164,7 +164,7 @@ def main():
             pin_memory=True,
             drop_last=True,
             sampler=extra_train_sampler)
-        extra_epoch_iters = np.int(extra_train_dataset.__len__() / 
+        extra_epoch_iters = np.int_(extra_train_dataset.__len__() / 
                         config.TRAIN.BATCH_SIZE_PER_GPU / len(gpus))
 
 
@@ -241,7 +241,7 @@ def main():
     else:
         raise ValueError('Only Support SGD optimizer')
 
-    epoch_iters = np.int(train_dataset.__len__() / 
+    epoch_iters = np.int_(train_dataset.__len__() / 
                         config.TRAIN.BATCH_SIZE_PER_GPU / len(gpus))
         
     best_mIoU = 0
@@ -314,7 +314,7 @@ def main():
 
         writer_dict['writer'].close()
         end = timeit.default_timer()
-        logger.info('Hours: %d' % np.int((end-start)/3600))
+        logger.info('Hours: %d' % np.int_((end-start)/3600))
         logger.info('Done')
 
 
