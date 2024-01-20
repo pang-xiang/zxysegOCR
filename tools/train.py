@@ -41,7 +41,7 @@ def parse_args():
                         required=True,
                         type=str)
     parser.add_argument('--seed', type=int, default=304)
-    parser.add_argument("--local-rank", type=int, default=-1)       
+    parser.add_argument("--local_rank", type=int, default=-1)       
     parser.add_argument('opts',
                         help="Modify config options using the command-line",
                         default=None,
