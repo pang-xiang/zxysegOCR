@@ -28,7 +28,7 @@ import models
 import datasets
 from config import config
 from config import update_config
-from core.criterion import CrossEntropy, OhemCrossEntropy
+from core.criterion import CrossEntropy, OhemCrossEntropy, CrossEntropyWithFocalLoss
 from core.function import train, validate
 from utils.modelsummary import get_model_summary
 from utils.utils import create_logger, FullModel
@@ -196,6 +196,11 @@ def main():
                                         thres=config.LOSS.OHEMTHRES,
                                         min_kept=config.LOSS.OHEMKEEP,
                                         weight=train_dataset.class_weights)
+    elif config.LOSS.USE_FOCAL:
+        print('Using Focal Loss\r\n')
+        criterion = CrossEntropyWithFocalLoss(ignore_label=config.TRAIN.IGNORE_LABEL,
+                                weight=train_dataset.class_weights)
+        
     else:
         criterion = CrossEntropy(ignore_label=config.TRAIN.IGNORE_LABEL,
                                     weight=train_dataset.class_weights)
