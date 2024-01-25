@@ -60,7 +60,7 @@ class FocalLoss(nn.Module):
 
 
 class CrossEntropyWithFocalLoss(nn.Module):
-    def __init__(self, ignore_label=-1, weight=None, alpha=0.25, gamma=2.0):
+    def __init__(self, ignore_label=-1, weight=None, alpha=0.50, gamma=2.0):
         super(CrossEntropyWithFocalLoss, self).__init__()
         self.ignore_label = ignore_label
         self.criterion = FocalLoss(
