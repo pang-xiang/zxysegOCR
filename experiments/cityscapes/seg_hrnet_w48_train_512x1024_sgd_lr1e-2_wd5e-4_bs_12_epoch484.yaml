@@ -3,8 +3,8 @@ CUDNN:
   DETERMINISTIC: false
   ENABLED: true
 GPUS: (0,1)
-OUTPUT_DIR: 'output/aspp'
-LOG_DIR: 'log/aspp'
+OUTPUT_DIR: 'output/all_final'
+LOG_DIR: 'log/all_final'
 WORKERS: 4
 PRINT_FREQ: 100
 
@@ -70,6 +70,7 @@ MODEL:
       FUSE_METHOD: SUM
 LOSS:
   USE_OHEM: false
+  USE_FOCAL: true
   OHEMTHRES: 0.9
   OHEMKEEP: 131072
 TRAIN:

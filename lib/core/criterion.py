@@ -9,6 +9,7 @@ import torch.nn as nn
 from torch.nn import functional as F
 import logging
 from config import config
+import pdb
 
 
 class CrossEntropy(nn.Module):
@@ -32,7 +33,6 @@ class CrossEntropy(nn.Module):
         return loss
 
     def forward(self, score, target):
-
         if config.MODEL.NUM_OUTPUTS == 1:
             score = [score]
 
@@ -40,6 +40,53 @@ class CrossEntropy(nn.Module):
         assert len(weights) == len(score)
 
         return sum([w * self._forward(x, target) for (w, x) in zip(weights, score)])
+
+
+
+
+class FocalLoss(nn.Module):
+    def __init__(self, alpha=0.25, gamma=2.0, ignore_label=-1, weight=None):
+        super(FocalLoss, self).__init__()
+        self.alpha = alpha
+        self.gamma = gamma
+        self.ignore_label = ignore_label
+        self.weight = weight
+
+    def forward(self, inputs, targets):
+        ce_loss = F.cross_entropy(inputs, targets, reduction='none', weight=self.weight, ignore_index=self.ignore_label)
+        pt = torch.exp(-ce_loss)
+        focal_loss = (self.alpha * (1 - pt) ** self.gamma * ce_loss).mean()
+        return focal_loss
+
+
+class CrossEntropyWithFocalLoss(nn.Module):
+    def __init__(self, ignore_label=-1, weight=None, alpha=0.50, gamma=2.0):
+        super(CrossEntropyWithFocalLoss, self).__init__()
+        self.ignore_label = ignore_label
+        self.criterion = FocalLoss(
+            alpha=alpha,
+            gamma=gamma,
+            weight=weight,
+            ignore_label=ignore_label
+        )
+
+    def _forward(self, score, target):
+        ph, pw = score.size(2), score.size(3)
+        h, w = target.size(1), target.size(2)
+        if ph != h or pw != w:
+            score = F.interpolate(input=score, size=(h, w), mode='bilinear', align_corners=config.MODEL.ALIGN_CORNERS)
+        loss = self.criterion(score, target)
+        return loss
+
+    def forward(self, score, target):
+        if config.MODEL.NUM_OUTPUTS == 1:
+            score = [score]
+
+        weights = config.LOSS.BALANCE_WEIGHTS
+        assert len(weights) == len(score)
+
+        return sum([w * self._forward(x, target) for (w, x) in zip(weights, score)])
+
 
 
 class OhemCrossEntropy(nn.Module):
