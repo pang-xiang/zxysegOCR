@@ -151,7 +151,7 @@ def validate(config, testloader, model, writer_dict):
 
 
 def testval(config, test_dataset, testloader, model,
-            sv_dir='', sv_pred=False):
+            sv_dir='output/focal_loss_alpha0_5_gamma1', sv_pred=True):
     model.eval()
     confusion_matrix = np.zeros(
         (config.DATASET.NUM_CLASSES, config.DATASET.NUM_CLASSES))
@@ -184,7 +184,7 @@ def testval(config, test_dataset, testloader, model,
                 config.TRAIN.IGNORE_LABEL)
 
             if sv_pred:
-                sv_path = os.path.join(sv_dir, 'test_results')
+                sv_path = os.path.join(sv_dir, 'val_results')
                 if not os.path.exists(sv_path):
                     os.mkdir(sv_path)
                 test_dataset.save_pred(pred, sv_path, name)
